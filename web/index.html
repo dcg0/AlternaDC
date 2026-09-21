@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AlternaDC — DC Laboratory</title>
+  <link rel="icon" href="/logo_alternadc.png"><link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar"><div class="brand"><img src="/logo_alternadc.png" alt="AlternaDC"><div><h1>AlternaDC</h1><p>Monitoreo y Control de Energía — DC Laboratory</p></div></div><div class="connection"><span id="dot"></span><span id="connectionText">Conectando…</span></div></header>
+  <main>
+    <section class="channels" aria-label="Canales de energía">
+      <article class="channel main-channel"><div class="channel-head"><div><span class="eyebrow">CANAL PRINCIPAL</span><h2>Alternador Principal</h2><small>I²C <b>0x40</b></small></div><span class="status" id="mainStatus">—</span></div><div class="hero-metrics"><strong id="mainVoltage">--.-</strong><span>V</span><div><b id="mainPower">--</b> W<br><small id="mainCurrent">--</small> A</div></div><div class="progress"><span id="mainChargeBar"></span></div><div class="metric-grid"><div><span>Corriente</span><b id="mainCurrent2">-- A</b></div><div><span>Potencia</span><b id="mainPower2">-- W</b></div><div><span>Energía</span><b id="mainEnergy">-- Wh</b></div><div><span>Carga</span><b id="mainCharge">-- %</b></div></div></article>
+      <article class="channel secondary-channel"><div class="channel-head"><div><span class="eyebrow">CANAL SECUNDARIO</span><h2>Alternador Secundario</h2><small>I²C <b>0x41</b></small></div><span class="status" id="secondaryStatus">—</span></div><div class="hero-metrics"><strong id="secondaryVoltage">--.-</strong><span>V</span><div><b id="secondaryPower">--</b> W<br><small id="secondaryCurrent">--</small> A</div></div><div class="progress"><span id="secondaryChargeBar"></span></div><div class="metric-grid"><div><span>Corriente</span><b id="secondaryCurrent2">-- A</b></div><div><span>Potencia</span><b id="secondaryPower2">-- W</b></div><div><span>Energía</span><b id="secondaryEnergy">-- Wh</b></div><div><span>Carga</span><b id="secondaryCharge">-- %</b></div></div></article>
+    </section>
+    <section class="panel chart-panel"><div class="panel-title"><div><span class="eyebrow">TELEMETRÍA</span><h2>Gráfica comparativa en tiempo real</h2></div><div class="legend"><span class="blue-dot"></span> Principal <span class="yellow-dot"></span> Secundario</div></div><canvas id="chart" height="210"></canvas></section>
+    <section class="lower-grid"><article class="panel"><div class="panel-title"><div><span class="eyebrow">AUTOMATIZACIÓN</span><h2>Control de luces</h2></div><span id="lightsState" class="pill">APAGADAS</span></div><p class="muted">Modo actual: <b id="lightMode">automático</b></p><div class="button-row"><button data-mode="auto" class="active">AUTO</button><button data-mode="on">ENCENDER</button><button data-mode="off">APAGAR</button></div></article><article class="panel"><div class="panel-title"><div><span class="eyebrow">SISTEMA</span><h2>Estado y alertas</h2></div><button id="mute" class="icon-button" title="Silenciar alertas">🔔</button></div><div id="alert" class="alert">Esperando telemetría…</div><p class="muted">Bocina piezoeléctrica · alertas independientes por canal · actualización cada segundo</p></article></section>
+    <section class="about"><img src="/tablero_vivo.jpg" alt="Ejemplo del tablero AlternaDC"><div><span class="eyebrow">ACERCA DE</span><h2>Diseñado para ver la energía de un vistazo.</h2><p>AlternaDC funciona como una red local independiente. Conecta tu celular, tablet, PC o Raspberry Pi al punto de acceso del ESP32 y abre <b>http://192.168.4.1</b>.</p><p class="muted">DC Laboratory · firmware dual INA226 · sin internet ni servicios externos.</p></div></section>
+  </main><footer>AlternaDC — DC Laboratory · <a href="https://github.com/dcg0/AlternaDC">Repositorio oficial</a></footer>
+  <script src="/app.js"></script>
+</body></html>

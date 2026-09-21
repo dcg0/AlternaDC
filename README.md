@@ -3,103 +3,94 @@
 # ⚡ AlternaDC
 ### Monitoreo y Control de Energía — DC Laboratory
 
-Sistema independiente para **monitorear y controlar dos alternadores** en tiempo real. Funciona sin internet: ves todo desde tu celular, pantalla o navegador.
+AlternaDC es un sistema local para el **monitoreo simultáneo de dos alternadores o fuentes DC** con un ESP32 y dos sensores INA226. Su tablero web funciona sin internet y muestra voltaje, corriente, potencia, energía acumulada y carga estimada en ambos canales.
 
----
+> **Acceso local:** conecta un celular, tablet, PC o Raspberry Pi a la red Wi-Fi `AlternaDC` y abre [http://192.168.4.1](http://192.168.4.1).
 
-## 📊 Lo que monitorea
+## Funciones principales
 
-| Canal | Color | Voltaje · Corriente · Potencia · Energía · % Carga |
-|---|---|---|
-| 🟦 **Alternador Principal** | Azul neón | ✅ En vivo |
-| 🟨 **Alternador Secundario** | Amarillo neón | ✅ En vivo |
+| Canal | Dirección I²C | Color | Datos |
+|---|---:|---|---|
+| **Alternador Principal** | `0x40` | Azul neón `#00ccff` | V, A, W, Wh y % de carga |
+| **Alternador Secundario** | `0x41` | Amarillo neón `#ffdd00` | V, A, W, Wh y % de carga |
 
-- **INA226 #1** → Dirección `0x40` → Principal 🟦
-- **INA226 #2** → Dirección `0x41` → Secundario 🟨
-- ESP32 recibe datos por I2C → transmite por WiFi
-- Accede desde: `http://192.168.4.1`
+La interfaz presenta las dos tarjetas a la vez, una gráfica comparativa con curvas superpuestas, alertas independientes por canal y un indicador de conexión. Todos los archivos del tablero se sirven desde LittleFS, sin dependencias externas ni CDN.
 
----
+## Control automático de luces
 
-## 💡 Control de Luces — Automático
-
-El sistema decide solo según la energía disponible:
+El relé conectado al pin configurable `RELAY_PIN` se gobierna por el nivel de voltaje del sistema. La interfaz permite elegir `AUTO`, `ENCENDER` o `APAGAR`; en modo automático se aplica lo siguiente:
 
 | Estado | Voltaje | Acción |
-|---|---|---|
-| ✅ Carga completa | > 13.8V | Encender luces extras, tiras neón, faros auxiliares |
-| ⚠️ Carga media | 12.8V – 13.7V | Mantener luces esenciales, reducir brillo |
-| 🔴 Batería baja | < 12.7V | Apagar luces extras automáticamente |
+|---|---:|---|
+| Carga plena | `> 13.8 V` | Enciende luces extras o tiras LED |
+| Carga media | `12.8–13.7 V` | Mantiene únicamente las luces esenciales |
+| Batería baja | `< 12.7 V` | Apaga las luces extras automáticamente |
 
-**Qué puedes conectar:**
-- Tiras LED neón → resaltar carrocería
-- Faros auxiliares → por relé controlado desde ESP32
-- Luces del tablero → brillo automático
-- Luces de alerta → parpadean si hay fallo
+## Avisos sonoros
 
-> Protege tu batería: nunca te quedas sin energía para arrancar ✅
+La bocina piezoeléctrica usa `BUZZER_PIN`. Al arrancar se reproduce un tono de confirmación de dos notas; la carga plena usa un aviso doble; el voltaje bajo genera un aviso cada 30 segundos y los fallos de lectura se muestran por canal. El botón de campana del tablero silencia o habilita las alertas.
 
----
+## Hardware y conexiones
 
-## 🔊 Avisos de Sonido
+![Diagrama de conexión](media/diagrama_conexion.jpg)
 
-- **Bocina conectada al ESP32:**
-  - Encendido → tono confirmación ✅
-  - Carga completa → doble aviso 🟦🟨
-  - Voltaje bajo → alerta repetitiva ⚠️
-  - Fallo en alternador → tono distintivo 🔴
-- **Desde tu celular:** el tablero web reproduce avisos de voz o tonos personalizados
-
----
-
-## 📱 Pantallas — Dónde ver todo
-
-### 📲 Opción 1 — Tu celular (sin instalar nada)
-- Abre: `http://192.168.4.1`
-- Dos tarjetas grandes: Principal 🟦 · Secundario 🟨
-- Gráficas en movimiento
-- Botones para controlar luces manualmente
-
-### 🖥️ Opción 2 — Pantalla fija en el tablero
-- OLED o TFT conectada directo al ESP32
-- Siempre visible sin tocar el celular
-- Muestra voltaje, amperios, estado de luces, alertas
-
-### 🚗 Opción 3 — Pantalla grande / Raspberry Pi
-- Todo junto en una sola vista:
-  - Datos del motor → desde DC-ELM327
-  - Energía de los alternadores → desde AlternaDC
-  - Control de luces y accesorios
-- Con tu marca **DC Laboratory** en todo
-
----
-
-## 🔌 Diagrama de Conexión
-
-
----
-
-## 🛠️ Componentes que necesitas
-
-| Pieza | Función |
+| Componente | ESP32 / conexión |
 |---|---|
-| ESP32 Dev Board | Cerebro del sistema |
-| Módulo INA226 × 2 | Medir voltaje y corriente de cada alternador |
-| Shunt 50A–100A × 2 | Sensor de corriente alta |
-| Módulo relés × 1–2 | Encender luces desde el ESP32 |
-| Bocina piezoeléctrica | Avisos de sonido |
-| Pantalla OLED 128×64 (opcional) | Visualización fija en tablero |
-| Cables Dupont | Conexión entre módulos |
+| INA226 Principal SDA/SCL | GPIO21 / GPIO22, dirección `0x40` |
+| INA226 Secundario SDA/SCL | GPIO21 / GPIO22, dirección `0x41` |
+| Relé de luces | GPIO26 (`RELAY_PIN`) |
+| Bocina piezoeléctrica | GPIO27 (`BUZZER_PIN`) |
+| Shunt de cada canal | En el lado de corriente correspondiente; configurar `SHUNT_OHMS` |
+| Alimentación | Convertidor automotriz protegido de 12 V a 5 V/3.3 V |
 
----
+Los dos INA226 comparten SDA/SCL y deben tener direcciones distintas mediante el puente de dirección del módulo. Usa fusible, protección contra inversión de polaridad y TVS en instalaciones automotrices. No conectes directamente la batería de un vehículo al pin de 3.3 V del ESP32.
 
-## 📂 Estructura del Proyecto
+![Ejemplo de tablero](media/tablero_vivo.jpg)
 
+## Compilación y carga
 
----
+Se recomienda [PlatformIO](https://platformio.org/) con VS Code o su CLI:
 
-## 🔗 Repositorio Oficial
+```bash
+pio run
+pio run -t upload
+pio run -t uploadfs
+pio device monitor -b 115200
+```
 
-👉 **https://github.com/dcg0/AlternaDC**
+La orden `uploadfs` es necesaria para copiar `data/` (la interfaz web) a LittleFS. Después del arranque, el ESP32 crea el punto de acceso `AlternaDC` con contraseña `alternadc` y sirve el tablero en `192.168.4.1`.
 
-© 2026 DC Laboratory — Código abierto
+## Estructura del repositorio
+
+```text
+AlternaDC/
+├── data/                     # Archivos web cargados en LittleFS
+│   ├── index.html
+│   ├── style.css
+│   ├── app.js
+│   └── logo_alternadc.png
+├── firmware/
+│   └── AlternaDC.ino        # Firmware dual INA226 para ESP32
+├── hardware/
+│   └── esquema_conexion.png
+├── media/                    # Fotografías y recursos del proyecto
+├── web/                      # Fuente de la interfaz web
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
+├── platformio.ini
+├── README.md
+└── LICENSE
+```
+
+## Imágenes del proyecto
+
+![Gráficas comparativas](media/graficas_comparativas.jpg)
+
+Las fotografías incluidas muestran el ESP32 Dev Kit, los módulos INA226, los shunts de 50–100 A, la separación visual azul/amarilla y las conexiones de relé y bocina. El logo y las imágenes suministradas se conservan en `media/`.
+
+## Créditos y licencia
+
+AlternaDC es una adaptación enfocada en doble canal del proyecto original [12VBatteryMonitor](https://github.com/tipih/12VBatteryMonitor), conservando su licencia y atribución en [LICENSE](LICENSE). Repositorio oficial: [github.com/dcg0/AlternaDC](https://github.com/dcg0/AlternaDC).
+
+© 2026 DC Laboratory.
