@@ -1,0 +1,36 @@
+name: Security checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static-security:
+    name: Static security checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect likely committed secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E '(BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|AIza[0-9A-Za-z_-]{35})' -- . ':!SECURITY.md'; then
+            echo 'Potential secret detected. Remove it and rotate it before merging.' >&2
+            exit 1
+          fi
+
+      - name: Check unsafe target links in HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIn --include='*.html' 'target="_blank"' . | grep -v 'rel="noopener"'; then
+            echo 'Every target=_blank link must include rel="noopener".' >&2
+            exit 1
+          fi
